@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>My Google Map</title>
+  <style>
+    #map{
+      height:400px;
+      width:100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Google Map</h1>
+  <div id="map"></div>
+  <script>
+    function initMap(){
+      // Map options
+      var options = {
+        zoom:7,
+        center:{lat:35.0844,lng:-106.6504}
+      }
+
+      // New map
+      var map = new google.maps.Map(document.getElementById('map'), options);
+
+      // Listen for click on map
+      google.maps.event.addListener(map, 'click', function(event){
+        // Add marker
+        addMarker({coords:event.latLng});
+      });
+	//Used to read in the .csv file
+	function readTextFile(file)
+	{
+	    var rawFile = new XMLHttpRequest();
+	    rawFile.open("GET", file, false);
+	    rawFile.onreadystatechange = function ()
+	    {
+	        if(rawFile.readyState === 4)
+	        {
+	            if(rawFile.status === 200 || rawFile.status == 0)
+	            {
+	                var allText = rawFile.responseText;
+	                // console.log(allText);
+	            }
+	        }
+	    }
+	    rawFile.send(null);
+	    return rawFile.responseText;
+	}
+	//used to create a dictionary for each row that can be accessed by the column header
+	function createDataDict(headers, rows)
+	{
+		plots = [];
+		for (var i = 0; i<rows.length; i++) 
+	        { 
+	        	dict = {};
+	        	data = rows[i].split(',');
+	           	for (var j = 0; j<headers.length; j++)
+	           	{
+	           		dict[headers[j]] = data[j];
+	           	}
+	           	plots.push(dict);
+	        }
+	    return plots;
+    }
+    // Add Marker Function
+    function addMarker(props)
+    {
+        var marker = new google.maps.Marker({
+          position:props.coords,
+          map:map,
+          //icon:props.iconImage
+        });
+
+        // Check for customicon
+        if(props.iconImage){
+          // Set icon image
+          marker.setIcon(props.iconImage);
+        }
+
+        // Check content
+        if(props.content){
+          var infoWindow = new google.maps.InfoWindow({
+            content:props.content
+          });
+
+          marker.addListener('click', function(){
+            infoWindow.open(map, marker);
+          });
+        }
+    }
+
+	dataFileContents = readTextFile("practiceData.csv");
+	rows = dataFileContents.split('\n');
+	headers = rows[0].split(',');
+	rows = rows.slice(1);
+
+    plots = createDataDict(headers, rows);
+    var markers = [];
+    
+    for(var i = 0; i<plots.length; i++)
+    {
+
+    	marker = {
+    		coords: {lat:parseFloat(plots[i]['Latitude']), lng:parseFloat(plots[i]['Longitude'])},
+    		content: '<h2>PrimaryKey: ' + plots[i]['PrimaryKey'] + '<h2>'
+    	};
+    	markers.push(marker);
+    }
+
+    // Array of markers
+    // var markers = [
+    //     {
+    //       coords:{lat:42.4668,lng:-70.9495},
+    //       content:'<h2>PrimaryKey: </h2><h2>Percent Bare Soil: </h2>'
+    //     }
+    // ];
+
+    // Loop through markers
+    for(var i = 0;i < markers.length;i++){
+      // Add marker
+      addMarker(markers[i]);
+    }
+
+
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqtipewDte4oUZoJpgFNsM7648NZCUYv8&callback=initMap"
+    async defer></script>
+	<script>
+	
+    </script>
+</body>
+</html>
